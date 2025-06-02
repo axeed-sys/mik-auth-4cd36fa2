@@ -1,10 +1,11 @@
-
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UserX, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SessionDetailDialog from "./SessionDetailDialog";
 
 interface ActiveSession {
   id: string;
@@ -21,6 +22,8 @@ interface ActiveSession {
 
 const ConnectionMonitor = () => {
   const { toast } = useToast();
+  const [selectedSession, setSelectedSession] = useState<ActiveSession | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const activeSessions: ActiveSession[] = [
     {
@@ -75,6 +78,11 @@ const ConnectionMonitor = () => {
     });
   };
 
+  const handleRowClick = (session: ActiveSession) => {
+    setSelectedSession(session);
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -123,7 +131,11 @@ const ConnectionMonitor = () => {
             </TableHeader>
             <TableBody>
               {activeSessions.map((session) => (
-                <TableRow key={session.id}>
+                <TableRow 
+                  key={session.id} 
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleRowClick(session)}
+                >
                   <TableCell className="font-medium">{session.username}</TableCell>
                   <TableCell>{session.ipAddress}</TableCell>
                   <TableCell className="font-mono text-sm">{session.macAddress}</TableCell>
@@ -144,7 +156,10 @@ const ConnectionMonitor = () => {
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      onClick={() => handleDisconnectUser(session.username)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDisconnectUser(session.username);
+                      }}
                     >
                       <UserX className="h-4 w-4 mr-1" />
                       Disconnect
@@ -182,6 +197,13 @@ const ConnectionMonitor = () => {
           </div>
         </CardContent>
       </Card>
+
+      <SessionDetailDialog
+        session={selectedSession}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onDisconnect={handleDisconnectUser}
+      />
     </div>
   );
 };
