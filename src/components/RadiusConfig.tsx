@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Save, TestTube, Plus, Trash2 } from "lucide-react";
+import { Save, TestTube, Plus, Trash2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface RadiusServer {
@@ -23,6 +22,7 @@ interface RadiusServer {
 
 const RadiusConfig = () => {
   const { toast } = useToast();
+  const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({});
   
   const [radiusServers, setRadiusServers] = useState<RadiusServer[]>([
     { id: "1", name: "Primary Auth", host: "192.168.1.10", port: 1812, secret: "shared-secret-123", status: "online", type: "auth" },
@@ -64,6 +64,13 @@ const RadiusConfig = () => {
     }, 2000);
   };
 
+  const toggleSecretVisibility = (serverId: string) => {
+    setShowSecrets(prev => ({
+      ...prev,
+      [serverId]: !prev[serverId]
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="servers" className="w-full">
@@ -91,6 +98,7 @@ const RadiusConfig = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Host</TableHead>
                     <TableHead>Port</TableHead>
+                    <TableHead>Secret</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -102,6 +110,24 @@ const RadiusConfig = () => {
                       <TableCell className="font-medium">{server.name}</TableCell>
                       <TableCell>{server.host}</TableCell>
                       <TableCell>{server.port}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-mono text-sm">
+                            {showSecrets[server.id] ? server.secret : '••••••••••••'}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleSecretVisibility(server.id)}
+                          >
+                            {showSecrets[server.id] ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge variant={server.type === 'auth' ? 'default' : 'secondary'}>
                           {server.type}
