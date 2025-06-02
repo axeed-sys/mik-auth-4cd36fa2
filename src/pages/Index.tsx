@@ -1,11 +1,39 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from "react";
+import Navigation from "@/components/Navigation";
+import Dashboard from "@/components/Dashboard";
+import UserManagement from "@/components/UserManagement";
+import ConnectionMonitor from "@/components/ConnectionMonitor";
+import RadiusConfig from "@/components/RadiusConfig";
 
 const Index = () => {
+  const [currentPage, setCurrentPage] = useState("dashboard");
+
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case "dashboard":
+        return <Dashboard />;
+      case "users":
+        return <UserManagement />;
+      case "monitor":
+        return <ConnectionMonitor />;
+      case "config":
+        return <RadiusConfig />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="flex h-screen bg-gray-50">
+      <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
+      
+      <div className="flex-1 lg:ml-0 ml-0">
+        <div className="h-full overflow-auto">
+          <div className="p-6 lg:p-8 pt-16 lg:pt-8">
+            {renderCurrentPage()}
+          </div>
+        </div>
       </div>
     </div>
   );
