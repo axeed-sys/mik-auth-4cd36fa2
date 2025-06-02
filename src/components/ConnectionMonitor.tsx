@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Disconnect, RefreshCw } from "lucide-react";
+import { UserX, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ActiveSession {
@@ -146,7 +146,7 @@ const ConnectionMonitor = () => {
                       size="sm"
                       onClick={() => handleDisconnectUser(session.username)}
                     >
-                      <Disconnect className="h-4 w-4 mr-1" />
+                      <UserX className="h-4 w-4 mr-1" />
                       Disconnect
                     </Button>
                   </TableCell>
