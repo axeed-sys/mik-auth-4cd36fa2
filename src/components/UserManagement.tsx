@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface User {
   id: string;
@@ -16,29 +17,62 @@ interface User {
   password: string;
   profile: string;
   status: "active" | "disabled";
-  macAddress?: string;
-  ipAddress?: string;
-  lastLogin?: string;
+  mac_address?: string;
+  ip_address?: string;
+  last_login?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const UserManagement = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>([
-    { id: "1", username: "user001", password: "pass123", profile: "1Mbps", status: "active", macAddress: "00:11:22:33:44:55", ipAddress: "10.0.1.100", lastLogin: "2024-01-15 14:30" },
-    { id: "2", username: "user045", password: "pass456", profile: "2Mbps", status: "active", macAddress: "00:11:22:33:44:66", ipAddress: "10.0.1.101", lastLogin: "2024-01-15 14:25" },
-    { id: "3", username: "user127", password: "pass789", profile: "5Mbps", status: "disabled", macAddress: "00:11:22:33:44:77", lastLogin: "2024-01-14 09:15" },
-  ]);
-  
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [newUser, setNewUser] = useState<Partial<User>>({});
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  // Fetch users from Supabase
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pppoe_users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch users from database",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to connect to database",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.profile.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.macAddress && user.macAddress.toLowerCase().includes(searchTerm.toLowerCase()))
+    (user.mac_address && user.mac_address.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const validateMacAddress = (mac: string): boolean => {
@@ -46,14 +80,7 @@ const UserManagement = () => {
     return macRegex.test(mac);
   };
 
-  const isMacAddressInUse = (macAddress: string, excludeUserId?: string): boolean => {
-    return users.some(user => 
-      user.macAddress?.toLowerCase() === macAddress.toLowerCase() && 
-      user.id !== excludeUserId
-    );
-  };
-
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUser.username || !newUser.password || !newUser.profile) {
       toast({
         title: "Error",
@@ -63,8 +90,8 @@ const UserManagement = () => {
       return;
     }
 
-    if (newUser.macAddress) {
-      if (!validateMacAddress(newUser.macAddress)) {
+    if (newUser.mac_address) {
+      if (!validateMacAddress(newUser.mac_address)) {
         toast({
           title: "Error",
           description: "Please enter a valid MAC address (e.g., 00:11:22:33:44:55)",
@@ -72,41 +99,69 @@ const UserManagement = () => {
         });
         return;
       }
-
-      if (isMacAddressInUse(newUser.macAddress)) {
-        toast({
-          title: "Error",
-          description: "This MAC address is already registered to another user",
-          variant: "destructive",
-        });
-        return;
-      }
     }
 
-    const user: User = {
-      id: Date.now().toString(),
-      username: newUser.username,
-      password: newUser.password,
-      profile: newUser.profile,
-      status: newUser.status || "active",
-      macAddress: newUser.macAddress,
-    };
+    try {
+      const { data, error } = await supabase
+        .from('pppoe_users')
+        .insert([
+          {
+            username: newUser.username,
+            password: newUser.password,
+            profile: newUser.profile,
+            status: newUser.status || "active",
+            mac_address: newUser.mac_address || null,
+          }
+        ])
+        .select()
+        .single();
 
-    setUsers([...users, user]);
-    setNewUser({});
-    setIsAddDialogOpen(false);
-    
-    toast({
-      title: "User Added",
-      description: `User ${user.username} has been created successfully`,
-    });
+      if (error) {
+        if (error.code === '23505' && error.message.includes('unique_mac_address')) {
+          toast({
+            title: "Error",
+            description: "This MAC address is already registered to another user",
+            variant: "destructive",
+          });
+        } else if (error.code === '23505' && error.message.includes('username')) {
+          toast({
+            title: "Error",
+            description: "This username already exists",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to create user",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
+      setUsers([data, ...users]);
+      setNewUser({});
+      setIsAddDialogOpen(false);
+      
+      toast({
+        title: "User Added",
+        description: `User ${data.username} has been created successfully`,
+      });
+    } catch (error) {
+      console.error('Error adding user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create user",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditUser = () => {
+  const handleEditUser = async () => {
     if (!editingUser) return;
 
-    if (editingUser.macAddress) {
-      if (!validateMacAddress(editingUser.macAddress)) {
+    if (editingUser.mac_address) {
+      if (!validateMacAddress(editingUser.mac_address)) {
         toast({
           title: "Error",
           description: "Please enter a valid MAC address (e.g., 00:11:22:33:44:55)",
@@ -114,41 +169,109 @@ const UserManagement = () => {
         });
         return;
       }
+    }
 
-      if (isMacAddressInUse(editingUser.macAddress, editingUser.id)) {
+    try {
+      const { data, error } = await supabase
+        .from('pppoe_users')
+        .update({
+          username: editingUser.username,
+          password: editingUser.password,
+          profile: editingUser.profile,
+          status: editingUser.status,
+          mac_address: editingUser.mac_address || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', editingUser.id)
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505' && error.message.includes('unique_mac_address')) {
+          toast({
+            title: "Error",
+            description: "This MAC address is already registered to another user",
+            variant: "destructive",
+          });
+        } else if (error.code === '23505' && error.message.includes('username')) {
+          toast({
+            title: "Error",
+            description: "This username already exists",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to update user",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
+      setUsers(users.map(user => 
+        user.id === editingUser.id ? data : user
+      ));
+      setEditingUser(null);
+      setIsEditDialogOpen(false);
+      
+      toast({
+        title: "User Updated",
+        description: `User ${data.username} has been updated successfully`,
+      });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('pppoe_users')
+        .delete()
+        .eq('id', userId);
+
+      if (error) {
         toast({
           title: "Error",
-          description: "This MAC address is already registered to another user",
+          description: "Failed to delete user",
           variant: "destructive",
         });
         return;
       }
+
+      setUsers(users.filter(user => user.id !== userId));
+      toast({
+        title: "User Deleted",
+        description: "User has been removed from the system",
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      });
     }
-
-    setUsers(users.map(user => 
-      user.id === editingUser.id ? editingUser : user
-    ));
-    setEditingUser(null);
-    setIsEditDialogOpen(false);
-    
-    toast({
-      title: "User Updated",
-      description: `User ${editingUser.username} has been updated successfully`,
-    });
-  };
-
-  const handleDeleteUser = (userId: string) => {
-    setUsers(users.filter(user => user.id !== userId));
-    toast({
-      title: "User Deleted",
-      description: "User has been removed from the system",
-    });
   };
 
   const openEditDialog = (user: User) => {
     setEditingUser({ ...user });
     setIsEditDialogOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading users...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -191,8 +314,8 @@ const UserManagement = () => {
                     <Label htmlFor="macAddress">MAC Address (Optional)</Label>
                     <Input
                       id="macAddress"
-                      value={newUser.macAddress || ""}
-                      onChange={(e) => setNewUser({ ...newUser, macAddress: e.target.value })}
+                      value={newUser.mac_address || ""}
+                      onChange={(e) => setNewUser({ ...newUser, mac_address: e.target.value })}
                       placeholder="e.g., 00:11:22:33:44:55"
                     />
                   </div>
@@ -261,7 +384,7 @@ const UserManagement = () => {
                   <TableCell>{user.profile}</TableCell>
                   <TableCell>
                     <span className="font-mono text-sm">
-                      {user.macAddress || "Not set"}
+                      {user.mac_address || "Not set"}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -273,8 +396,8 @@ const UserManagement = () => {
                       {user.status}
                     </span>
                   </TableCell>
-                  <TableCell>{user.ipAddress || "Not assigned"}</TableCell>
-                  <TableCell>{user.lastLogin || "Never"}</TableCell>
+                  <TableCell>{user.ip_address || "Not assigned"}</TableCell>
+                  <TableCell>{user.last_login ? new Date(user.last_login).toLocaleString() : "Never"}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Button 
@@ -331,8 +454,8 @@ const UserManagement = () => {
                 <Label htmlFor="edit-macAddress">MAC Address</Label>
                 <Input
                   id="edit-macAddress"
-                  value={editingUser.macAddress || ""}
-                  onChange={(e) => setEditingUser({ ...editingUser, macAddress: e.target.value })}
+                  value={editingUser.mac_address || ""}
+                  onChange={(e) => setEditingUser({ ...editingUser, mac_address: e.target.value })}
                   placeholder="e.g., 00:11:22:33:44:55"
                 />
               </div>
