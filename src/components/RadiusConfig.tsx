@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Save, TestTube, Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Save, TestTube, Plus, Trash2, Eye, EyeOff, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface RadiusServer {
@@ -20,15 +21,40 @@ interface RadiusServer {
   type: "auth" | "accounting";
 }
 
+interface UserProfile {
+  id: string;
+  name: string;
+  rateLimit: string;
+  sessionTimeout: string;
+  idleTimeout: string;
+  description?: string;
+}
+
 const RadiusConfig = () => {
   const { toast } = useToast();
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({});
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<UserProfile | null>(null);
   
   const [radiusServers, setRadiusServers] = useState<RadiusServer[]>([
     { id: "1", name: "Primary Auth", host: "192.168.1.10", port: 1812, secret: "shared-secret-123", status: "online", type: "auth" },
     { id: "2", name: "Primary Accounting", host: "192.168.1.10", port: 1813, secret: "shared-secret-123", status: "online", type: "accounting" },
     { id: "3", name: "Backup Auth", host: "192.168.1.11", port: 1812, secret: "backup-secret-456", status: "offline", type: "auth" },
   ]);
+
+  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([
+    { id: "1", name: "1Mbps", rateLimit: "1M/1M", sessionTimeout: "0", idleTimeout: "300", description: "Basic 1Mbps plan" },
+    { id: "2", name: "2Mbps", rateLimit: "2M/2M", sessionTimeout: "0", idleTimeout: "300", description: "Standard 2Mbps plan" },
+    { id: "3", name: "5Mbps", rateLimit: "5M/5M", sessionTimeout: "0", idleTimeout: "600", description: "Premium 5Mbps plan" },
+  ]);
+
+  const [newProfile, setNewProfile] = useState<Omit<UserProfile, 'id'>>({
+    name: "",
+    rateLimit: "",
+    sessionTimeout: "0",
+    idleTimeout: "300",
+    description: ""
+  });
 
   const [mikrotikConfig, setMikrotikConfig] = useState({
     radiusEnabled: true,
@@ -69,6 +95,84 @@ const RadiusConfig = () => {
       ...prev,
       [serverId]: !prev[serverId]
     }));
+  };
+
+  const handleCreateProfile = () => {
+    if (!newProfile.name || !newProfile.rateLimit) {
+      toast({
+        title: "Error",
+        description: "Profile name and rate limit are required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const profile: UserProfile = {
+      ...newProfile,
+      id: Date.now().toString()
+    };
+
+    setUserProfiles(prev => [...prev, profile]);
+    setNewProfile({
+      name: "",
+      rateLimit: "",
+      sessionTimeout: "0",
+      idleTimeout: "300",
+      description: ""
+    });
+    setIsProfileDialogOpen(false);
+
+    toast({
+      title: "Profile Created",
+      description: `Profile "${profile.name}" has been created successfully`,
+    });
+  };
+
+  const handleEditProfile = (profile: UserProfile) => {
+    setEditingProfile(profile);
+    setIsProfileDialogOpen(true);
+  };
+
+  const handleUpdateProfile = () => {
+    if (!editingProfile || !editingProfile.name || !editingProfile.rateLimit) {
+      toast({
+        title: "Error",
+        description: "Profile name and rate limit are required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUserProfiles(prev => prev.map(p => p.id === editingProfile.id ? editingProfile : p));
+    setEditingProfile(null);
+    setIsProfileDialogOpen(false);
+
+    toast({
+      title: "Profile Updated",
+      description: `Profile "${editingProfile.name}" has been updated successfully`,
+    });
+  };
+
+  const handleDeleteProfile = (profileId: string) => {
+    const profile = userProfiles.find(p => p.id === profileId);
+    setUserProfiles(prev => prev.filter(p => p.id !== profileId));
+    
+    toast({
+      title: "Profile Deleted",
+      description: `Profile "${profile?.name}" has been deleted`,
+    });
+  };
+
+  const resetProfileDialog = () => {
+    setEditingProfile(null);
+    setNewProfile({
+      name: "",
+      rateLimit: "",
+      sessionTimeout: "0",
+      idleTimeout: "300",
+      description: ""
+    });
+    setIsProfileDialogOpen(false);
   };
 
   return (
@@ -274,7 +378,124 @@ const RadiusConfig = () => {
         <TabsContent value="profiles">
           <Card>
             <CardHeader>
-              <CardTitle>PPPoE User Profiles</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>PPPoE User Profiles</CardTitle>
+                <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={resetProfileDialog}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Profile
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingProfile ? 'Edit Profile' : 'Create New Profile'}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="profile-name" className="text-right">
+                          Name
+                        </Label>
+                        <Input
+                          id="profile-name"
+                          value={editingProfile ? editingProfile.name : newProfile.name}
+                          onChange={(e) => {
+                            if (editingProfile) {
+                              setEditingProfile({ ...editingProfile, name: e.target.value });
+                            } else {
+                              setNewProfile({ ...newProfile, name: e.target.value });
+                            }
+                          }}
+                          className="col-span-3"
+                          placeholder="e.g., 10Mbps"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="rate-limit" className="text-right">
+                          Rate Limit
+                        </Label>
+                        <Input
+                          id="rate-limit"
+                          value={editingProfile ? editingProfile.rateLimit : newProfile.rateLimit}
+                          onChange={(e) => {
+                            if (editingProfile) {
+                              setEditingProfile({ ...editingProfile, rateLimit: e.target.value });
+                            } else {
+                              setNewProfile({ ...newProfile, rateLimit: e.target.value });
+                            }
+                          }}
+                          className="col-span-3"
+                          placeholder="e.g., 10M/10M"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="session-timeout" className="text-right">
+                          Session Timeout
+                        </Label>
+                        <Input
+                          id="session-timeout"
+                          value={editingProfile ? editingProfile.sessionTimeout : newProfile.sessionTimeout}
+                          onChange={(e) => {
+                            if (editingProfile) {
+                              setEditingProfile({ ...editingProfile, sessionTimeout: e.target.value });
+                            } else {
+                              setNewProfile({ ...newProfile, sessionTimeout: e.target.value });
+                            }
+                          }}
+                          className="col-span-3"
+                          placeholder="0 for unlimited"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="idle-timeout" className="text-right">
+                          Idle Timeout
+                        </Label>
+                        <Input
+                          id="idle-timeout"
+                          value={editingProfile ? editingProfile.idleTimeout : newProfile.idleTimeout}
+                          onChange={(e) => {
+                            if (editingProfile) {
+                              setEditingProfile({ ...editingProfile, idleTimeout: e.target.value });
+                            } else {
+                              setNewProfile({ ...newProfile, idleTimeout: e.target.value });
+                            }
+                          }}
+                          className="col-span-3"
+                          placeholder="e.g., 300"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="description" className="text-right">
+                          Description
+                        </Label>
+                        <Input
+                          id="description"
+                          value={editingProfile ? editingProfile.description || '' : newProfile.description}
+                          onChange={(e) => {
+                            if (editingProfile) {
+                              setEditingProfile({ ...editingProfile, description: e.target.value });
+                            } else {
+                              setNewProfile({ ...newProfile, description: e.target.value });
+                            }
+                          }}
+                          className="col-span-3"
+                          placeholder="Optional description"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={resetProfileDialog}>
+                        Cancel
+                      </Button>
+                      <Button onClick={editingProfile ? handleUpdateProfile : handleCreateProfile}>
+                        {editingProfile ? 'Update' : 'Create'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -284,37 +505,38 @@ const RadiusConfig = () => {
                     <TableHead>Rate Limit</TableHead>
                     <TableHead>Session Timeout</TableHead>
                     <TableHead>Idle Timeout</TableHead>
+                    <TableHead>Description</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">1Mbps</TableCell>
-                    <TableCell>1M/1M</TableCell>
-                    <TableCell>0 (unlimited)</TableCell>
-                    <TableCell>300s</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">2Mbps</TableCell>
-                    <TableCell>2M/2M</TableCell>
-                    <TableCell>0 (unlimited)</TableCell>
-                    <TableCell>300s</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">5Mbps</TableCell>
-                    <TableCell>5M/5M</TableCell>
-                    <TableCell>0 (unlimited)</TableCell>
-                    <TableCell>600s</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
+                  {userProfiles.map((profile) => (
+                    <TableRow key={profile.id}>
+                      <TableCell className="font-medium">{profile.name}</TableCell>
+                      <TableCell>{profile.rateLimit}</TableCell>
+                      <TableCell>{profile.sessionTimeout === "0" ? "unlimited" : `${profile.sessionTimeout}s`}</TableCell>
+                      <TableCell>{profile.idleTimeout}s</TableCell>
+                      <TableCell>{profile.description || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditProfile(profile)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteProfile(profile.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
