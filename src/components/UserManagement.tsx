@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,19 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface User {
-  id: string;
-  username: string;
-  password: string;
-  profile: string;
-  status: "active" | "disabled";
-  mac_address?: string;
-  ip_address?: string;
-  last_login?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+type User = Tables<'pppoe_users'>;
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -336,7 +326,7 @@ const UserManagement = () => {
                   </div>
                   <div>
                     <Label htmlFor="status">Status</Label>
-                    <Select onValueChange={(value) => setNewUser({ ...newUser, status: value as "active" | "disabled" })}>
+                    <Select onValueChange={(value) => setNewUser({ ...newUser, status: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
@@ -476,7 +466,7 @@ const UserManagement = () => {
               </div>
               <div>
                 <Label htmlFor="edit-status">Status</Label>
-                <Select value={editingUser.status} onValueChange={(value) => setEditingUser({ ...editingUser, status: value as "active" | "disabled" })}>
+                <Select value={editingUser.status} onValueChange={(value) => setEditingUser({ ...editingUser, status: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
