@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Save, TestTube, Plus, Trash2, Eye, EyeOff, Edit } from "lucide-react";
+import { Save, TestTube, Plus, Trash2, Eye, EyeOff, Edit, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface RadiusServer {
@@ -33,6 +33,8 @@ interface UserProfile {
 const RadiusConfig = () => {
   const { toast } = useToast();
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({});
+  const [editingHost, setEditingHost] = useState<{ [key: string]: boolean }>({});
+  const [editingHostValue, setEditingHostValue] = useState<{ [key: string]: string }>({});
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<UserProfile | null>(null);
   
@@ -95,6 +97,40 @@ const RadiusConfig = () => {
       ...prev,
       [serverId]: !prev[serverId]
     }));
+  };
+
+  const startEditingHost = (serverId: string, currentHost: string) => {
+    setEditingHost(prev => ({ ...prev, [serverId]: true }));
+    setEditingHostValue(prev => ({ ...prev, [serverId]: currentHost }));
+  };
+
+  const cancelEditingHost = (serverId: string) => {
+    setEditingHost(prev => ({ ...prev, [serverId]: false }));
+    setEditingHostValue(prev => ({ ...prev, [serverId]: "" }));
+  };
+
+  const saveHost = (serverId: string) => {
+    const newHost = editingHostValue[serverId];
+    if (!newHost.trim()) {
+      toast({
+        title: "Error",
+        description: "Host cannot be empty",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setRadiusServers(prev => prev.map(server => 
+      server.id === serverId ? { ...server, host: newHost.trim() } : server
+    ));
+
+    setEditingHost(prev => ({ ...prev, [serverId]: false }));
+    setEditingHostValue(prev => ({ ...prev, [serverId]: "" }));
+
+    toast({
+      title: "Host Updated",
+      description: `Host has been updated to ${newHost.trim()}`,
+    });
   };
 
   const handleCreateProfile = () => {
@@ -212,7 +248,46 @@ const RadiusConfig = () => {
                   {radiusServers.map((server) => (
                     <TableRow key={server.id}>
                       <TableCell className="font-medium">{server.name}</TableCell>
-                      <TableCell>{server.host}</TableCell>
+                      <TableCell>
+                        {editingHost[server.id] ? (
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              value={editingHostValue[server.id] || ""}
+                              onChange={(e) => setEditingHostValue(prev => ({
+                                ...prev,
+                                [server.id]: e.target.value
+                              }))}
+                              className="h-8"
+                              placeholder="Enter host IP"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => saveHost(server.id)}
+                            >
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => cancelEditingHost(server.id)}
+                            >
+                              <X className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <span>{server.host}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => startEditingHost(server.id, server.host)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell>{server.port}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
