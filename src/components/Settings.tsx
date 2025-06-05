@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import TwoFactorAuth from './TwoFactorAuth';
 
 const Settings = () => {
   const { credentials, updateCredentials, logout } = useAuth();
@@ -62,70 +63,74 @@ const Settings = () => {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Login Credentials</CardTitle>
-          <CardDescription>
-            Update your username and password for accessing the system
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleUpdateCredentials} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="current-username">Current Username</Label>
-              <Input
-                id="current-username"
-                type="text"
-                value={credentials.username}
-                disabled
-                className="bg-gray-100"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="new-username">New Username</Label>
-              <Input
-                id="new-username"
-                type="text"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                placeholder="Enter new username"
-                required
-              />
-            </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Login Credentials</CardTitle>
+            <CardDescription>
+              Update your username and password for accessing the system
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdateCredentials} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="current-username">Current Username</Label>
+                <Input
+                  id="current-username"
+                  type="text"
+                  value={credentials.username}
+                  disabled
+                  className="bg-gray-100"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="new-username">New Username</Label>
+                <Input
+                  id="new-username"
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  placeholder="Enter new username"
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-              <Input
-                id="new-password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password (min 6 characters)"
-                required
-                minLength={6}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password (min 6 characters)"
+                  required
+                  minLength={6}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm New Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                required
-                minLength={6}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  required
+                  minLength={6}
+                />
+              </div>
 
-            <Button type="submit" className="w-full">
-              Update Credentials
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <Button type="submit" className="w-full">
+                Update Credentials
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <TwoFactorAuth />
+      </div>
     </div>
   );
 };
