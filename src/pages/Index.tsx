@@ -1,13 +1,28 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import Dashboard from "@/components/Dashboard";
 import UserManagement from "@/components/UserManagement";
 import ConnectionMonitor from "@/components/ConnectionMonitor";
 import RadiusConfig from "@/components/RadiusConfig";
+import Settings from "@/components/Settings";
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const renderCurrentPage = () => {
     switch (currentPage) {
@@ -19,6 +34,8 @@ const Index = () => {
         return <ConnectionMonitor />;
       case "config":
         return <RadiusConfig />;
+      case "settings":
+        return <Settings />;
       default:
         return <Dashboard />;
     }
