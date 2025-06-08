@@ -1,13 +1,16 @@
-
 import React, { useState } from 'react';
 import { useUserPortal } from '@/contexts/UserPortalContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Wifi, User, Activity, Download, Upload, Clock, MapPin, Smartphone } from 'lucide-react';
+import { Wifi, User, Activity, Download, Upload, Clock, MapPin, Smartphone, CreditCard, Receipt } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import PaymentPlans from '@/components/PaymentPlans';
+import PaystackPayment from '@/components/PaystackPayment';
+import PaymentHistory from '@/components/PaymentHistory';
 
 const UserPortalLogin = () => {
   const [username, setUsername] = useState('');
@@ -86,6 +89,8 @@ const UserPortalLogin = () => {
 const UserPortalDashboard = () => {
   const { user, logout } = useUserPortal();
   const { toast } = useToast();
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [showPayment, setShowPayment] = useState(false);
 
   // Mock bandwidth data - in real implementation, this would come from your monitoring system
   const bandwidthData = {
@@ -132,6 +137,25 @@ const UserPortalDashboard = () => {
     );
   };
 
+  const handleSelectPlan = (plan: any) => {
+    setSelectedPlan(plan);
+    setShowPayment(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPayment(false);
+    setSelectedPlan(null);
+    toast({
+      title: "Payment Successful!",
+      description: "Your payment has been processed successfully.",
+    });
+  };
+
+  const handleBackToPlans = () => {
+    setShowPayment(false);
+    setSelectedPlan(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -149,148 +173,214 @@ const UserPortalDashboard = () => {
           </Button>
         </div>
 
-        {/* Profile Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Status</div>
-                <Badge variant={user?.status === 'active' ? 'default' : 'destructive'}>
-                  {user?.status || 'Unknown'}
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Profile</div>
-                <div className="font-medium">{user?.profile || 'Not assigned'}</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  IP Address
-                </div>
-                <div className="font-mono text-sm">{user?.ip_address || 'Not assigned'}</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Smartphone className="h-4 w-4" />
-                  MAC Address
-                </div>
-                <div className="font-mono text-sm">{user?.mac_address || 'Not available'}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="payments">Make Payment</TabsTrigger>
+            <TabsTrigger value="history">Payment History</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+          </TabsList>
 
-        {/* Live Bandwidth */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Live Bandwidth Usage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <BandwidthBar 
-                current={bandwidthData.currentUpload} 
-                max={bandwidthData.maxUpload} 
-                label="Upload Speed" 
+          <TabsContent value="dashboard" className="space-y-6">
+            {/* Profile Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">Status</div>
+                    <Badge variant={user?.status === 'active' ? 'default' : 'destructive'}>
+                      {user?.status || 'Unknown'}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">Profile</div>
+                    <div className="font-medium">{user?.profile || 'Not assigned'}</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      IP Address
+                    </div>
+                    <div className="font-mono text-sm">{user?.ip_address || 'Not assigned'}</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Smartphone className="h-4 w-4" />
+                      MAC Address
+                    </div>
+                    <div className="font-mono text-sm">{user?.mac_address || 'Not available'}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Live Bandwidth */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Live Bandwidth Usage
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <BandwidthBar 
+                    current={bandwidthData.currentUpload} 
+                    max={bandwidthData.maxUpload} 
+                    label="Upload Speed" 
+                  />
+                  <BandwidthBar 
+                    current={bandwidthData.currentDownload} 
+                    max={bandwidthData.maxDownload} 
+                    label="Download Speed" 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Data Usage */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  Data Consumption
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{bandwidthData.totalUploaded}</div>
+                    <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                      <Upload className="h-4 w-4" />
+                      Total Uploaded
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{bandwidthData.totalDownloaded}</div>
+                    <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                      <Download className="h-4 w-4" />
+                      Total Downloaded
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">{bandwidthData.monthlyQuota}</div>
+                    <div className="text-sm text-muted-foreground">Monthly Quota</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">{bandwidthData.quotaUsed}%</div>
+                    <div className="text-sm text-muted-foreground">Quota Used</div>
+                  </div>
+                </div>
+                
+                {/* Quota Usage Bar */}
+                <div className="mt-6">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Monthly Data Usage</span>
+                    <span className="font-medium">{bandwidthData.quotaUsed}% of {bandwidthData.monthlyQuota}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className={`h-3 rounded-full transition-all duration-300 ${
+                        bandwidthData.quotaUsed > 90 ? 'bg-red-500' : 
+                        bandwidthData.quotaUsed > 70 ? 'bg-yellow-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(bandwidthData.quotaUsed, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Session Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Session Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">Last Login</div>
+                    <div className="font-medium">
+                      {user?.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">Account Created</div>
+                    <div className="font-medium">January 15, 2024</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">Connection Status</div>
+                    <Badge variant="default">Online</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="payments">
+            {showPayment && selectedPlan ? (
+              <PaystackPayment
+                plan={selectedPlan}
+                onBack={handleBackToPlans}
+                onSuccess={handlePaymentSuccess}
               />
-              <BandwidthBar 
-                current={bandwidthData.currentDownload} 
-                max={bandwidthData.maxDownload} 
-                label="Download Speed" 
-              />
-            </div>
-          </CardContent>
-        </Card>
+            ) : (
+              <PaymentPlans onSelectPlan={handleSelectPlan} />
+            )}
+          </TabsContent>
 
-        {/* Data Usage */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="h-5 w-5" />
-              Data Consumption
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{bandwidthData.totalUploaded}</div>
-                <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                  <Upload className="h-4 w-4" />
-                  Total Uploaded
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{bandwidthData.totalDownloaded}</div>
-                <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                  <Download className="h-4 w-4" />
-                  Total Downloaded
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{bandwidthData.monthlyQuota}</div>
-                <div className="text-sm text-muted-foreground">Monthly Quota</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">{bandwidthData.quotaUsed}%</div>
-                <div className="text-sm text-muted-foreground">Quota Used</div>
-              </div>
-            </div>
-            
-            {/* Quota Usage Bar */}
-            <div className="mt-6">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Monthly Data Usage</span>
-                <span className="font-medium">{bandwidthData.quotaUsed}% of {bandwidthData.monthlyQuota}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  className={`h-3 rounded-full transition-all duration-300 ${
-                    bandwidthData.quotaUsed > 90 ? 'bg-red-500' : 
-                    bandwidthData.quotaUsed > 70 ? 'bg-yellow-500' : 'bg-green-500'
-                  }`}
-                  style={{ width: `${Math.min(bandwidthData.quotaUsed, 100)}%` }}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <TabsContent value="history">
+            <PaymentHistory />
+          </TabsContent>
 
-        {/* Session Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Session Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Last Login</div>
-                <div className="font-medium">
-                  {user?.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  User Profile
+                </CardTitle>
+                <CardDescription>
+                  View and manage your account information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Username</Label>
+                      <Input value={user?.username || ''} disabled />
+                    </div>
+                    <div>
+                      <Label>Profile Plan</Label>
+                      <Input value={user?.profile || ''} disabled />
+                    </div>
+                    <div>
+                      <Label>Status</Label>
+                      <Input value={user?.status || ''} disabled />
+                    </div>
+                    <div>
+                      <Label>Last Login</Label>
+                      <Input 
+                        value={user?.last_login ? new Date(user.last_login).toLocaleString() : 'Never'} 
+                        disabled 
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Account Created</div>
-                <div className="font-medium">January 15, 2024</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Connection Status</div>
-                <Badge variant="default">Online</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
