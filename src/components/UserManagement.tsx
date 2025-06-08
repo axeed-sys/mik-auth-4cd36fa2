@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -23,6 +22,7 @@ const UserManagement = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
 
   // Fetch users from Supabase
   const fetchUsers = async () => {
@@ -68,6 +68,16 @@ const UserManagement = () => {
   const validateMacAddress = (mac: string): boolean => {
     const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
     return macRegex.test(mac);
+  };
+
+  const togglePasswordVisibility = (userId: string) => {
+    const newVisiblePasswords = new Set(visiblePasswords);
+    if (newVisiblePasswords.has(userId)) {
+      newVisiblePasswords.delete(userId);
+    } else {
+      newVisiblePasswords.add(userId);
+    }
+    setVisiblePasswords(newVisiblePasswords);
   };
 
   const handleAddUser = async () => {
@@ -359,6 +369,7 @@ const UserManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Username</TableHead>
+                <TableHead>Password</TableHead>
                 <TableHead>Profile</TableHead>
                 <TableHead>MAC Address</TableHead>
                 <TableHead>Status</TableHead>
@@ -371,6 +382,25 @@ const UserManagement = () => {
               {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.username}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono text-sm">
+                        {visiblePasswords.has(user.id) ? user.password : '••••••••'}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => togglePasswordVisibility(user.id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        {visiblePasswords.has(user.id) ? (
+                          <EyeOff className="h-3 w-3" />
+                        ) : (
+                          <Eye className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
                   <TableCell>{user.profile}</TableCell>
                   <TableCell>
                     <span className="font-mono text-sm">
