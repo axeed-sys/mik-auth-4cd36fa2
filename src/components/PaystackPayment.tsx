@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PaystackButton } from 'react-paystack';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserPortal } from '@/contexts/UserPortalContext';
-import { ArrowLeft, CreditCard, Shield } from 'lucide-react';
+import { ArrowLeft, CreditCard, Shield, AlertTriangle } from 'lucide-react';
 
 interface PaymentPlan {
   id: string;
@@ -30,11 +30,23 @@ const PaystackPayment: React.FC<PaystackPaymentProps> = ({ plan, onBack, onSucce
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [publicKey, setPublicKey] = useState('');
+  const [keysConfigured, setKeysConfigured] = useState(false);
   const { toast } = useToast();
   const { user } = useUserPortal();
 
-  // You'll need to set this in your environment
-  const publicKey = "pk_test_your_paystack_public_key"; // Replace with your actual Paystack public key
+  useEffect(() => {
+    // Get Paystack public key from localStorage
+    const storedPublicKey = localStorage.getItem('paystack_public_key');
+    const storedSecretKey = localStorage.getItem('paystack_secret_key');
+    
+    if (storedPublicKey && storedSecretKey) {
+      setPublicKey(storedPublicKey);
+      setKeysConfigured(true);
+    } else {
+      setKeysConfigured(false);
+    }
+  }, []);
 
   const generateReference = () => {
     return `ref_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
@@ -139,6 +151,44 @@ const PaystackPayment: React.FC<PaystackPaymentProps> = ({ plan, onBack, onSucce
     
     setLoading(false);
   };
+
+  if (!keysConfigured) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={onBack} className="p-0">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Plans
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Payment Configuration Required
+            </CardTitle>
+            <CardDescription>
+              Paystack API keys need to be configured before processing payments
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-orange-50 p-4 rounded-lg">
+              <p className="text-orange-800 mb-4">
+                To process payments, an administrator needs to configure the Paystack API keys in the system settings.
+              </p>
+              <p className="text-sm text-orange-700">
+                Please contact your system administrator or configure the keys in Settings → Paystack Config.
+              </p>
+            </div>
+            <Button onClick={onBack} className="w-full">
+              Back to Plans
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const componentProps = {
     email,
