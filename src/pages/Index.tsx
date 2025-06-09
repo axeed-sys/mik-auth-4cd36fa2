@@ -7,6 +7,8 @@ import Dashboard from "@/components/Dashboard";
 import UserManagement from "@/components/UserManagement";
 import ConnectionMonitor from "@/components/ConnectionMonitor";
 import RadiusConfig from "@/components/RadiusConfig";
+import RouterConfig from "@/components/RouterConfig";
+import PaymentTracking from "@/components/PaymentTracking";
 import Settings from "@/components/Settings";
 
 const Index = () => {
@@ -34,6 +36,10 @@ const Index = () => {
         return <ConnectionMonitor />;
       case "config":
         return <RadiusConfig />;
+      case "router":
+        return <RouterConfig />;
+      case "payments":
+        return <PaymentTracking />;
       case "settings":
         return <Settings />;
       default:

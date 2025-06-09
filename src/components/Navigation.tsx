@@ -20,6 +20,8 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
     { id: "users", label: "User Management" },
     { id: "monitor", label: "Connection Monitor" },
     { id: "config", label: "RADIUS Config" },
+    { id: "router", label: "Router Config" },
+    { id: "payments", label: "Payment Tracking" },
     { id: "settings", label: "Settings" },
   ];
 
