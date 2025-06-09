@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,7 +46,7 @@ const RouterConfig = () => {
     queryKey: ['router-configs'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('router_config' as any)
+        .from('router_config')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -57,7 +58,7 @@ const RouterConfig = () => {
   const addRouterMutation = useMutation({
     mutationFn: async (newRouter: Omit<RouterConfig, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('router_config' as any)
+        .from('router_config')
         .insert([newRouter])
         .select()
         .single();
@@ -86,7 +87,7 @@ const RouterConfig = () => {
   const updateRouterMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<RouterConfig> & { id: string }) => {
       const { data, error } = await supabase
-        .from('router_config' as any)
+        .from('router_config')
         .update(updates)
         .eq('id', id)
         .select()
@@ -109,7 +110,7 @@ const RouterConfig = () => {
   const deleteRouterMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('router_config' as any)
+        .from('router_config')
         .delete()
         .eq('id', id);
       

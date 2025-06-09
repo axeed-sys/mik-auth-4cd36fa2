@@ -179,6 +179,92 @@ export type Database = {
         }
         Relationships: []
       }
+      router_config: {
+        Row: {
+          api_port: number
+          connection_type: string
+          created_at: string
+          id: string
+          ip_address: string
+          is_active: boolean
+          name: string
+          password: string
+          ssh_port: number
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          api_port?: number
+          connection_type?: string
+          created_at?: string
+          id?: string
+          ip_address: string
+          is_active?: boolean
+          name: string
+          password: string
+          ssh_port?: number
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          api_port?: number
+          connection_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: string
+          is_active?: boolean
+          name?: string
+          password?: string
+          ssh_port?: number
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      user_payment_status: {
+        Row: {
+          auto_block_enabled: boolean
+          created_at: string
+          id: string
+          last_payment_date: string | null
+          next_due_date: string
+          plan_price: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_block_enabled?: boolean
+          created_at?: string
+          id?: string
+          last_payment_date?: string | null
+          next_due_date: string
+          plan_price: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_block_enabled?: boolean
+          created_at?: string
+          id?: string
+          last_payment_date?: string | null
+          next_due_date?: string
+          plan_price?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_payment_status_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "pppoe_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
