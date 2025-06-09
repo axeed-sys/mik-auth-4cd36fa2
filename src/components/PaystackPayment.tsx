@@ -106,6 +106,40 @@ const PaystackPayment: React.FC<PaystackPaymentProps> = ({ plan, onBack, onSucce
     });
   };
 
+  const formatAmount = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
+  };
+
+  const handleInitiatePayment = async () => {
+    if (!email || !phone) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide your email and phone number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const reference = generateReference();
+    const paymentRecord = await createPaymentRecord(reference);
+    
+    if (!paymentRecord) {
+      toast({
+        title: "Error",
+        description: "Failed to initialize payment. Please try again.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(false);
+  };
+
   const componentProps = {
     email,
     amount: plan.amount * 100, // Paystack expects amount in kobo
@@ -125,46 +159,10 @@ const PaystackPayment: React.FC<PaystackPaymentProps> = ({ plan, onBack, onSucce
       ]
     },
     publicKey,
-    text: `Pay ${new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: plan.currency,
-    }).format(plan.amount)}`,
+    text: `Pay ${formatAmount(plan.amount, plan.currency)}`,
     onSuccess: handlePaymentSuccess,
     onClose: handlePaymentClose,
     reference: generateReference(),
-  };
-
-  const handleInitiatePayment = async () => {
-    if (!email || !phone) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide your email and phone number.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    const paymentRecord = await createPaymentRecord(componentProps.reference);
-    
-    if (!paymentRecord) {
-      toast({
-        title: "Error",
-        description: "Failed to initialize payment. Please try again.",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
-    
-    setLoading(false);
-  };
-
-  const formatAmount = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
   };
 
   return (
@@ -252,12 +250,12 @@ const PaystackPayment: React.FC<PaystackPaymentProps> = ({ plan, onBack, onSucce
               <PaystackButton
                 {...componentProps}
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors"
-                onReady={() => handleInitiatePayment()}
               />
             ) : (
               <Button 
                 className="w-full" 
                 disabled
+                onClick={handleInitiatePayment}
               >
                 Enter Email and Phone to Continue
               </Button>
