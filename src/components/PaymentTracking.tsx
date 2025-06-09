@@ -21,11 +21,9 @@ interface UserPaymentStatus {
   auto_block_enabled: boolean;
   created_at: string;
   updated_at: string;
-  pppoe_users?: {
-    username: string;
-    profile: string;
-    status: string;
-  };
+  username?: string;
+  profile?: string;
+  user_status?: string;
 }
 
 const PaymentTracking = () => {
@@ -56,20 +54,32 @@ const PaymentTracking = () => {
   const { data: paymentStatuses, isLoading } = useQuery({
     queryKey: ['payment-status'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: paymentData, error: paymentError } = await supabase
         .from('user_payment_status' as any)
-        .select(`
-          *,
-          pppoe_users (
-            username,
-            profile,
-            status
-          )
-        `)
+        .select('*')
         .order('next_due_date', { ascending: true });
       
-      if (error) throw error;
-      return data as UserPaymentStatus[];
+      if (paymentError) throw paymentError;
+
+      // Fetch user details separately
+      const { data: userData, error: userError } = await supabase
+        .from('pppoe_users')
+        .select('id, username, profile, status');
+      
+      if (userError) throw userError;
+
+      // Combine the data
+      const combinedData = paymentData?.map(payment => {
+        const user = userData?.find(u => u.id === payment.user_id);
+        return {
+          ...payment,
+          username: user?.username,
+          profile: user?.profile,
+          user_status: user?.status
+        };
+      }) || [];
+
+      return combinedData as UserPaymentStatus[];
     }
   });
 
@@ -294,7 +304,7 @@ const PaymentTracking = () => {
                   return (
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium">
-                        {payment.pppoe_users?.username}
+                        {payment.username || 'Unknown User'}
                       </TableCell>
                       <TableCell>₦{payment.plan_price.toLocaleString()}</TableCell>
                       <TableCell>
