@@ -6,16 +6,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Search, Edit, Trash2, Eye, EyeOff, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscriptionDays } from "@/hooks/useSubscriptionDays";
 import type { Tables } from "@/integrations/supabase/types";
 
 type User = Tables<'pppoe_users'>;
+type UserPaymentStatus = Tables<'user_payment_status'>;
+
+interface UserWithPayment extends User {
+  payment_status?: UserPaymentStatus;
+}
 
 const UserManagement = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserWithPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [newUser, setNewUser] = useState<Partial<User>>({});
@@ -24,16 +31,17 @@ const UserManagement = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
 
-  // Fetch users from Supabase
+  // Fetch users and their payment status from Supabase
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // First fetch all users
+      const { data: usersData, error: usersError } = await supabase
         .from('pppoe_users')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching users:', error);
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
         toast({
           title: "Error",
           description: "Failed to fetch users from database",
@@ -42,7 +50,26 @@ const UserManagement = () => {
         return;
       }
 
-      setUsers(data || []);
+      // Then fetch payment status for all users
+      const { data: paymentData, error: paymentError } = await supabase
+        .from('user_payment_status')
+        .select('*');
+
+      if (paymentError) {
+        console.error('Error fetching payment status:', paymentError);
+        // Don't return here, we still want to show users without payment data
+      }
+
+      // Combine the data
+      const usersWithPayment = usersData?.map(user => {
+        const paymentStatus = paymentData?.find(p => p.user_id === user.id);
+        return {
+          ...user,
+          payment_status: paymentStatus
+        };
+      }) || [];
+
+      setUsers(usersWithPayment);
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -210,7 +237,7 @@ const UserManagement = () => {
       }
 
       setUsers(users.map(user => 
-        user.id === editingUser.id ? data : user
+        user.id === editingUser.id ? { ...data, payment_status: user.payment_status } : user
       ));
       setEditingUser(null);
       setIsEditDialogOpen(false);
@@ -263,6 +290,35 @@ const UserManagement = () => {
   const openEditDialog = (user: User) => {
     setEditingUser({ ...user });
     setIsEditDialogOpen(true);
+  };
+
+  const SubscriptionDaysCell = ({ paymentStatus }: { paymentStatus?: UserPaymentStatus }) => {
+    const subscriptionInfo = useSubscriptionDays(paymentStatus);
+
+    if (!subscriptionInfo) {
+      return <span className="text-gray-500">No subscription</span>;
+    }
+
+    const getStatusColor = () => {
+      if (subscriptionInfo.status === 'blocked') return 'bg-red-100 text-red-800';
+      if (subscriptionInfo.status === 'suspended') return 'bg-yellow-100 text-yellow-800';
+      if (subscriptionInfo.isOverdue) return 'bg-red-100 text-red-800';
+      if (subscriptionInfo.daysLeft <= 7) return 'bg-yellow-100 text-yellow-800';
+      return 'bg-green-100 text-green-800';
+    };
+
+    const getStatusText = () => {
+      if (subscriptionInfo.isOverdue) {
+        return `${Math.abs(subscriptionInfo.daysLeft)} days overdue`;
+      }
+      return `${subscriptionInfo.daysLeft} days left`;
+    };
+
+    return (
+      <Badge className={getStatusColor()}>
+        {getStatusText()}
+      </Badge>
+    );
   };
 
   if (loading) {
@@ -375,6 +431,10 @@ const UserManagement = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>IP Address</TableHead>
                 <TableHead>Last Login</TableHead>
+                <TableHead className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  Subscription Days
+                </TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -418,6 +478,9 @@ const UserManagement = () => {
                   </TableCell>
                   <TableCell>{user.ip_address || "Not assigned"}</TableCell>
                   <TableCell>{user.last_login ? new Date(user.last_login).toLocaleString() : "Never"}</TableCell>
+                  <TableCell>
+                    <SubscriptionDaysCell paymentStatus={user.payment_status} />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Button 
