@@ -57,7 +57,7 @@ const PaymentTracking = () => {
     queryKey: ['payment-status'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('user_payment_status')
+        .from('user_payment_status' as any)
         .select(`
           *,
           pppoe_users (
@@ -79,7 +79,7 @@ const PaymentTracking = () => {
       nextDueDate.setDate(nextDueDate.getDate() + 30); // 30 days from now
 
       const { data: result, error } = await supabase
-        .from('user_payment_status')
+        .from('user_payment_status' as any)
         .insert([{
           user_id: data.user_id,
           plan_price: data.plan_price,
@@ -106,7 +106,7 @@ const PaymentTracking = () => {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'active' | 'suspended' | 'blocked' }) => {
       const { data, error } = await supabase
-        .from('user_payment_status')
+        .from('user_payment_status' as any)
         .update({ status })
         .eq('id', id)
         .select()
@@ -133,7 +133,7 @@ const PaymentTracking = () => {
       newDueDate.setDate(newDueDate.getDate() + days);
 
       const { data, error } = await supabase
-        .from('user_payment_status')
+        .from('user_payment_status' as any)
         .update({ 
           next_due_date: newDueDate.toISOString(),
           last_payment_date: new Date().toISOString(),

@@ -46,7 +46,7 @@ const RouterConfig = () => {
     queryKey: ['router-configs'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('router_config')
+        .from('router_config' as any)
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -58,7 +58,7 @@ const RouterConfig = () => {
   const addRouterMutation = useMutation({
     mutationFn: async (newRouter: Omit<RouterConfig, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('router_config')
+        .from('router_config' as any)
         .insert([newRouter])
         .select()
         .single();
@@ -87,7 +87,7 @@ const RouterConfig = () => {
   const updateRouterMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<RouterConfig> & { id: string }) => {
       const { data, error } = await supabase
-        .from('router_config')
+        .from('router_config' as any)
         .update(updates)
         .eq('id', id)
         .select()
@@ -110,7 +110,7 @@ const RouterConfig = () => {
   const deleteRouterMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('router_config')
+        .from('router_config' as any)
         .delete()
         .eq('id', id);
       
