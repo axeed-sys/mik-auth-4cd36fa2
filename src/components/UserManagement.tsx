@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { Plus, Search, Edit, Trash2, Eye, EyeOff, Calendar } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionDays } from "@/hooks/useSubscriptionDays";
+import CustomerDetailsModal from "./CustomerDetailsModal";
 import type { Tables } from "@/integrations/supabase/types";
 
 type User = Tables<'pppoe_users'>;
@@ -28,8 +28,10 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [newUser, setNewUser] = useState<Partial<User>>({});
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCustomerDetailsOpen, setIsCustomerDetailsOpen] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
 
   // Fetch users and their payment status from Supabase
@@ -106,6 +108,11 @@ const UserManagement = () => {
       newVisiblePasswords.add(userId);
     }
     setVisiblePasswords(newVisiblePasswords);
+  };
+
+  const handleRowClick = (user: User) => {
+    setSelectedCustomer(user);
+    setIsCustomerDetailsOpen(true);
   };
 
   const handleAddUser = async () => {
@@ -441,7 +448,11 @@ const UserManagement = () => {
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow 
+                  key={user.id} 
+                  className="cursor-pointer hover:bg-muted/50" 
+                  onClick={() => handleRowClick(user)}
+                >
                   <TableCell className="font-medium">{user.username}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
@@ -451,7 +462,10 @@ const UserManagement = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => togglePasswordVisibility(user.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePasswordVisibility(user.id);
+                        }}
                         className="h-6 w-6 p-0"
                       >
                         {visiblePasswords.has(user.id) ? (
@@ -487,14 +501,20 @@ const UserManagement = () => {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => openEditDialog(user)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditDialog(user);
+                        }}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => handleDeleteUser(user.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteUser(user.id);
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -577,36 +597,14 @@ const UserManagement = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Customer Details Modal */}
+      <CustomerDetailsModal 
+        customer={selectedCustomer}
+        isOpen={isCustomerDetailsOpen}
+        onClose={() => setIsCustomerDetailsOpen(false)}
+      />
     </div>
-  );
-};
-
-const SubscriptionDaysCell = ({ paymentStatus }: { paymentStatus?: UserPaymentStatus }) => {
-  const subscriptionInfo = useSubscriptionDays(paymentStatus);
-
-  if (!subscriptionInfo) {
-    return <span className="text-gray-500">No subscription</span>;
-  }
-
-  const getStatusColor = () => {
-    if (subscriptionInfo.status === 'blocked') return 'bg-red-100 text-red-800';
-    if (subscriptionInfo.status === 'suspended') return 'bg-yellow-100 text-yellow-800';
-    if (subscriptionInfo.isOverdue) return 'bg-red-100 text-red-800';
-    if (subscriptionInfo.daysLeft <= 7) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
-  };
-
-  const getStatusText = () => {
-    if (subscriptionInfo.isOverdue) {
-      return `${Math.abs(subscriptionInfo.daysLeft)} days overdue`;
-    }
-    return `${subscriptionInfo.daysLeft} days left`;
-  };
-
-  return (
-    <Badge className={getStatusColor()}>
-      {getStatusText()}
-    </Badge>
   );
 };
 
