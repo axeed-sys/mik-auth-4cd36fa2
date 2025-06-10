@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,8 +5,7 @@ import Navigation from "@/components/Navigation";
 import Dashboard from "@/components/Dashboard";
 import UserManagement from "@/components/UserManagement";
 import ConnectionMonitor from "@/components/ConnectionMonitor";
-import RadiusConfig from "@/components/RadiusConfig";
-import RouterConfig from "@/components/RouterConfig";
+import ConfigSection from "@/components/ConfigSection";
 import PaymentTracking from "@/components/PaymentTracking";
 import Settings from "@/components/Settings";
 
@@ -35,10 +33,8 @@ const Index = () => {
       case "monitor":
         return <ConnectionMonitor />;
       case "config":
-        return <RadiusConfig />;
-      case "router":
-        return <RouterConfig />;
-      case "payments":
+        return <ConfigSection />;
+      case "finance":
         return <PaymentTracking />;
       case "settings":
         return <Settings />;
