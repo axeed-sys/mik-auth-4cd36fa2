@@ -17,7 +17,7 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard" },
-    { id: "users", label: "User Management" },
+    { id: "users", label: "Customer Management" },
     { id: "monitor", label: "Connection Monitor" },
     { id: "config", label: "Config" },
     { id: "finance", label: "Finance" },

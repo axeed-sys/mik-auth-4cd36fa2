@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,10 +42,10 @@ const UserManagement = () => {
         .order('created_at', { ascending: false });
 
       if (usersError) {
-        console.error('Error fetching users:', usersError);
+        console.error('Error fetching customers:', usersError);
         toast({
           title: "Error",
-          description: "Failed to fetch users from database",
+          description: "Failed to fetch customers from database",
           variant: "destructive",
         });
         return;
@@ -147,7 +148,7 @@ const UserManagement = () => {
         if (error.code === '23505' && error.message.includes('unique_mac_address')) {
           toast({
             title: "Error",
-            description: "This MAC address is already registered to another user",
+            description: "This MAC address is already registered to another customer",
             variant: "destructive",
           });
         } else if (error.code === '23505' && error.message.includes('username')) {
@@ -159,7 +160,7 @@ const UserManagement = () => {
         } else {
           toast({
             title: "Error",
-            description: "Failed to create user",
+            description: "Failed to create customer",
             variant: "destructive",
           });
         }
@@ -171,14 +172,14 @@ const UserManagement = () => {
       setIsAddDialogOpen(false);
       
       toast({
-        title: "User Added",
-        description: `User ${data.username} has been created successfully`,
+        title: "Customer Added",
+        description: `Customer ${data.username} has been created successfully`,
       });
     } catch (error) {
-      console.error('Error adding user:', error);
+      console.error('Error adding customer:', error);
       toast({
         title: "Error",
-        description: "Failed to create user",
+        description: "Failed to create customer",
         variant: "destructive",
       });
     }
@@ -217,7 +218,7 @@ const UserManagement = () => {
         if (error.code === '23505' && error.message.includes('unique_mac_address')) {
           toast({
             title: "Error",
-            description: "This MAC address is already registered to another user",
+            description: "This MAC address is already registered to another customer",
             variant: "destructive",
           });
         } else if (error.code === '23505' && error.message.includes('username')) {
@@ -229,7 +230,7 @@ const UserManagement = () => {
         } else {
           toast({
             title: "Error",
-            description: "Failed to update user",
+            description: "Failed to update customer",
             variant: "destructive",
           });
         }
@@ -243,14 +244,14 @@ const UserManagement = () => {
       setIsEditDialogOpen(false);
       
       toast({
-        title: "User Updated",
-        description: `User ${data.username} has been updated successfully`,
+        title: "Customer Updated",
+        description: `Customer ${data.username} has been updated successfully`,
       });
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error('Error updating customer:', error);
       toast({
         title: "Error",
-        description: "Failed to update user",
+        description: "Failed to update customer",
         variant: "destructive",
       });
     }
@@ -266,7 +267,7 @@ const UserManagement = () => {
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to delete user",
+          description: "Failed to delete customer",
           variant: "destructive",
         });
         return;
@@ -274,14 +275,14 @@ const UserManagement = () => {
 
       setUsers(users.filter(user => user.id !== userId));
       toast({
-        title: "User Deleted",
-        description: "User has been removed from the system",
+        title: "Customer Deleted",
+        description: "Customer has been removed from the system",
       });
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('Error deleting customer:', error);
       toast({
         title: "Error",
-        description: "Failed to delete user",
+        description: "Failed to delete customer",
         variant: "destructive",
       });
     }
@@ -324,7 +325,7 @@ const UserManagement = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Loading users...</div>
+        <div className="text-lg">Loading customers...</div>
       </div>
     );
   }
@@ -334,17 +335,17 @@ const UserManagement = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>PPPoE User Management</CardTitle>
+            <CardTitle>PPPoE Customer Management</CardTitle>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add User
+                  Add Customer
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add New PPPoE User</DialogTitle>
+                  <DialogTitle>Add New PPPoE Customer</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -403,7 +404,7 @@ const UserManagement = () => {
                     </Select>
                   </div>
                   <Button onClick={handleAddUser} className="w-full">
-                    Create User
+                    Create Customer
                   </Button>
                 </div>
               </DialogContent>
@@ -414,7 +415,7 @@ const UserManagement = () => {
           <div className="flex items-center space-x-2 mb-4">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search users, profiles, or MAC addresses..."
+              placeholder="Search customers, profiles, or MAC addresses..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -506,11 +507,11 @@ const UserManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Edit User Dialog */}
+      {/* Edit Customer Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit PPPoE User</DialogTitle>
+            <DialogTitle>Edit PPPoE Customer</DialogTitle>
           </DialogHeader>
           {editingUser && (
             <div className="space-y-4">
@@ -570,13 +571,42 @@ const UserManagement = () => {
                 </Select>
               </div>
               <Button onClick={handleEditUser} className="w-full">
-                Update User
+                Update Customer
               </Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+const SubscriptionDaysCell = ({ paymentStatus }: { paymentStatus?: UserPaymentStatus }) => {
+  const subscriptionInfo = useSubscriptionDays(paymentStatus);
+
+  if (!subscriptionInfo) {
+    return <span className="text-gray-500">No subscription</span>;
+  }
+
+  const getStatusColor = () => {
+    if (subscriptionInfo.status === 'blocked') return 'bg-red-100 text-red-800';
+    if (subscriptionInfo.status === 'suspended') return 'bg-yellow-100 text-yellow-800';
+    if (subscriptionInfo.isOverdue) return 'bg-red-100 text-red-800';
+    if (subscriptionInfo.daysLeft <= 7) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getStatusText = () => {
+    if (subscriptionInfo.isOverdue) {
+      return `${Math.abs(subscriptionInfo.daysLeft)} days overdue`;
+    }
+    return `${subscriptionInfo.daysLeft} days left`;
+  };
+
+  return (
+    <Badge className={getStatusColor()}>
+      {getStatusText()}
+    </Badge>
   );
 };
 
