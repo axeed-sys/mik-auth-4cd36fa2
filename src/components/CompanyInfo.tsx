@@ -96,7 +96,7 @@ const CompanyInfo = () => {
   };
 
   const saveCompanyInfoMutation = useMutation({
-    mutationFn: async (data: Partial<CompanyInfo>) => {
+    mutationFn: async (data: typeof formData) => {
       let logoUrl = formData.logo_url;
 
       if (logoFile) {
@@ -107,8 +107,12 @@ const CompanyInfo = () => {
       }
 
       const updateData = {
-        ...data,
-        logo_url: logoUrl
+        company_name: data.company_name,
+        rc_number: data.rc_number || null,
+        address: data.address || null,
+        email: data.email || null,
+        phone_number: data.phone_number || null,
+        logo_url: logoUrl || null
       };
 
       if (companyInfo?.id) {
@@ -124,7 +128,7 @@ const CompanyInfo = () => {
       } else {
         const { data: result, error } = await supabase
           .from('company_info')
-          .insert([updateData])
+          .insert(updateData)
           .select()
           .single();
         
