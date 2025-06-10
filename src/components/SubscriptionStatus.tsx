@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,14 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscriptionDays } from '@/hooks/useSubscriptionDays';
 import { Calendar, Clock, AlertTriangle } from 'lucide-react';
+import type { Tables } from '@/integrations/supabase/types';
 
-interface UserPaymentStatus {
-  plan_price: number;
-  last_payment_date: string | null;
-  next_due_date: string;
-  status: 'active' | 'suspended' | 'blocked';
-  auto_block_enabled: boolean;
-}
+type UserPaymentStatus = Tables<'user_payment_status'>;
 
 const SubscriptionStatus: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<UserPaymentStatus | null>(null);

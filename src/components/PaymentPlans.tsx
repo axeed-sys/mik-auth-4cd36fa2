@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,7 @@ interface PaymentPlan {
 }
 
 interface PaymentPlansProps {
-  onSelectPlan: (plan: PaymentPlan) => void;
+  onSelectPlan?: (plan: PaymentPlan) => void;
 }
 
 const PaymentPlans: React.FC<PaymentPlansProps> = ({ onSelectPlan }) => {
@@ -74,6 +73,17 @@ const PaymentPlans: React.FC<PaymentPlansProps> = ({ onSelectPlan }) => {
       style: 'currency',
       currency: currency,
     }).format(amount);
+  };
+
+  const handleSelectPlan = (plan: PaymentPlan) => {
+    if (onSelectPlan) {
+      onSelectPlan(plan);
+    } else {
+      toast({
+        title: "Plan Selected",
+        description: `You selected the ${plan.name} plan. Payment integration will be available soon.`,
+      });
+    }
   };
 
   if (loading) {
@@ -134,7 +144,7 @@ const PaymentPlans: React.FC<PaymentPlansProps> = ({ onSelectPlan }) => {
               </div>
               <Button 
                 className="w-full" 
-                onClick={() => onSelectPlan(plan)}
+                onClick={() => handleSelectPlan(plan)}
                 disabled={!user}
               >
                 {user ? 'Select Plan' : 'Login Required'}

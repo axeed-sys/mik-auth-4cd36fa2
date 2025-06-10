@@ -1,5 +1,6 @@
 
 import { useMemo } from 'react';
+import type { Tables } from '@/integrations/supabase/types';
 
 export interface SubscriptionInfo {
   daysLeft: number;
@@ -8,10 +9,9 @@ export interface SubscriptionInfo {
   nextDueDate: string;
 }
 
-export const useSubscriptionDays = (paymentStatus?: {
-  next_due_date: string;
-  status: 'active' | 'suspended' | 'blocked';
-}): SubscriptionInfo | null => {
+type UserPaymentStatus = Tables<'user_payment_status'>;
+
+export const useSubscriptionDays = (paymentStatus?: UserPaymentStatus | null): SubscriptionInfo | null => {
   return useMemo(() => {
     if (!paymentStatus) return null;
 
@@ -23,7 +23,7 @@ export const useSubscriptionDays = (paymentStatus?: {
     return {
       daysLeft,
       isOverdue: daysLeft < 0,
-      status: paymentStatus.status,
+      status: paymentStatus.status as 'active' | 'suspended' | 'blocked',
       nextDueDate: paymentStatus.next_due_date
     };
   }, [paymentStatus]);
