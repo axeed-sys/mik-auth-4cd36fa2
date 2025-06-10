@@ -165,6 +165,58 @@ const PaymentTracking = () => {
     }
   });
 
+  // Generate receipt for successful payment
+  const generateReceiptMutation = useMutation({
+    mutationFn: async ({ paymentId, userId, amount, currency, description }: {
+      paymentId: string;
+      userId: string;
+      amount: number;
+      currency: string;
+      description: string;
+    }) => {
+      // Get company info
+      const { data: companyInfo } = await supabase
+        .from('company_info')
+        .select('*')
+        .single();
+
+      // Get user info
+      const { data: userInfo } = await supabase
+        .from('pppoe_users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (!userInfo) throw new Error('User not found');
+
+      const receiptNumber = `RCP-${Date.now()}`;
+
+      const { data, error } = await supabase
+        .from('payment_receipts')
+        .insert([{
+          payment_id: paymentId,
+          receipt_number: receiptNumber,
+          company_info: companyInfo || { company_name: 'Your Company' },
+          user_info: {
+            username: userInfo.username,
+            profile: userInfo.profile,
+            id: userInfo.id
+          },
+          payment_details: {
+            amount,
+            currency,
+            description,
+            status: 'success'
+          }
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -201,7 +253,7 @@ const PaymentTracking = () => {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center p-8">Loading payment tracking data...</div>;
+    return <div className="flex items-center justify-center p-8">Loading finance tracking data...</div>;
   }
 
   return (
@@ -209,7 +261,7 @@ const PaymentTracking = () => {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <CreditCard className="h-8 w-8" />
-          Payment Tracking & Auto-Block
+          Finance Tracking & Auto-Block
         </h1>
         <p className="text-muted-foreground mt-2">
           Monitor user payments and automatically block users after 30 days without payment

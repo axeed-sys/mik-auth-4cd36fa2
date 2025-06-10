@@ -1,13 +1,15 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserPortal } from '@/contexts/UserPortalContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Settings, CreditCard, History, LogOut } from 'lucide-react';
+import { User, Settings, CreditCard, History, LogOut, Receipt } from 'lucide-react';
 import PaymentHistory from '@/components/PaymentHistory';
 import PaymentPlans from '@/components/PaymentPlans';
 import SubscriptionStatus from '@/components/SubscriptionStatus';
+import PaymentReceipts from '@/components/PaymentReceipts';
 
 const UserPortal = () => {
   const { user, logout, isAuthenticated } = useUserPortal();
@@ -98,7 +100,7 @@ const UserPortal = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="plans" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="plans" className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
                   Payment Plans
@@ -106,6 +108,10 @@ const UserPortal = () => {
                 <TabsTrigger value="history" className="flex items-center gap-2">
                   <History className="h-4 w-4" />
                   Payment History
+                </TabsTrigger>
+                <TabsTrigger value="receipts" className="flex items-center gap-2">
+                  <Receipt className="h-4 w-4" />
+                  Receipts
                 </TabsTrigger>
               </TabsList>
 
@@ -115,6 +121,10 @@ const UserPortal = () => {
 
               <TabsContent value="history">
                 <PaymentHistory />
+              </TabsContent>
+
+              <TabsContent value="receipts">
+                <PaymentReceipts />
               </TabsContent>
             </Tabs>
           </div>

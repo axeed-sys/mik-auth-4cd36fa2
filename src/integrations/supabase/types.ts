@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      company_info: {
+        Row: {
+          address: string | null
+          company_name: string
+          created_at: string
+          email: string | null
+          id: string
+          logo_url: string | null
+          phone_number: string | null
+          rc_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_name: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          phone_number?: string | null
+          rc_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_name?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          phone_number?: string | null
+          rc_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_plans: {
         Row: {
           amount: number
@@ -47,6 +83,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      payment_receipts: {
+        Row: {
+          company_info: Json
+          created_at: string
+          id: string
+          issued_at: string
+          payment_details: Json
+          payment_id: string
+          receipt_number: string
+          user_info: Json
+        }
+        Insert: {
+          company_info: Json
+          created_at?: string
+          id?: string
+          issued_at?: string
+          payment_details: Json
+          payment_id: string
+          receipt_number: string
+          user_info: Json
+        }
+        Update: {
+          company_info?: Json
+          created_at?: string
+          id?: string
+          issued_at?: string
+          payment_details?: Json
+          payment_id?: string
+          receipt_number?: string
+          user_info?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
