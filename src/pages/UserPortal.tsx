@@ -5,27 +5,60 @@ import { useUserPortal } from '@/contexts/UserPortalContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Settings, CreditCard, History, LogOut, Receipt } from 'lucide-react';
+import { User, CreditCard, History, LogOut, Receipt, AlertTriangle } from 'lucide-react';
 import PaymentHistory from '@/components/PaymentHistory';
 import PaymentPlans from '@/components/PaymentPlans';
 import SubscriptionStatus from '@/components/SubscriptionStatus';
 import PaymentReceipts from '@/components/PaymentReceipts';
 
 const UserPortal = () => {
-  const { user, logout, isAuthenticated } = useUserPortal();
+  const { user, logout, isAuthenticated, loading } = useUserPortal();
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (!isAuthenticated) {
+    console.log('UserPortal mounted, isAuthenticated:', isAuthenticated, 'user:', user);
+    if (!loading && !isAuthenticated) {
+      console.log('User not authenticated, redirecting to login');
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, loading, user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-32"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Access Denied
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              You need to be logged in to access the user portal.
+            </p>
+            <Button onClick={() => navigate('/login')} className="w-full">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const handleLogout = () => {
+    console.log('Logging out user');
     logout();
     navigate('/login');
   };
