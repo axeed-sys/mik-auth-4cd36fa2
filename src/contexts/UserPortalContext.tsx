@@ -25,17 +25,27 @@ const UserPortalContext = createContext<UserPortalContextType | undefined>(undef
 export const UserPortalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<PPPoEUser | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('UserPortalProvider: Checking for saved user');
     const savedUser = localStorage.getItem('pppoe-user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      setIsAuthenticated(true);
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        console.log('UserPortalProvider: Found saved user:', parsedUser);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('UserPortalProvider: Error parsing saved user:', error);
+        localStorage.removeItem('pppoe-user');
+      }
     }
+    setLoading(false);
   }, []);
 
   const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    console.log('UserPortalProvider: Attempting login for:', username);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -47,9 +57,11 @@ export const UserPortalProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .single();
 
       if (error || !data) {
+        console.log('UserPortalProvider: Login failed:', error);
         return { success: false, error: 'Invalid credentials or inactive account' };
       }
 
+      console.log('UserPortalProvider: Login successful:', data);
       setUser(data);
       setIsAuthenticated(true);
       localStorage.setItem('pppoe-user', JSON.stringify(data));
@@ -62,6 +74,7 @@ export const UserPortalProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       return { success: true };
     } catch (error) {
+      console.error('UserPortalProvider: Login error:', error);
       return { success: false, error: 'Login failed' };
     } finally {
       setLoading(false);
@@ -69,6 +82,7 @@ export const UserPortalProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const logout = () => {
+    console.log('UserPortalProvider: Logging out');
     setIsAuthenticated(false);
     setUser(null);
     localStorage.removeItem('pppoe-user');

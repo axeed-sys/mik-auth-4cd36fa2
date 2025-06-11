@@ -5,7 +5,7 @@ import { useUserPortal } from '@/contexts/UserPortalContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, CreditCard, History, LogOut, Receipt, AlertTriangle } from 'lucide-react';
+import { User, CreditCard, History, LogOut, Receipt, AlertTriangle, ArrowLeft } from 'lucide-react';
 import PaymentHistory from '@/components/PaymentHistory';
 import PaymentPlans from '@/components/PaymentPlans';
 import SubscriptionStatus from '@/components/SubscriptionStatus';
@@ -15,21 +15,36 @@ const UserPortal = () => {
   const { user, logout, isAuthenticated, loading } = useUserPortal();
   const navigate = useNavigate();
 
+  console.log('UserPortal render - loading:', loading, 'isAuthenticated:', isAuthenticated, 'user:', user);
+
   React.useEffect(() => {
-    console.log('UserPortal mounted, isAuthenticated:', isAuthenticated, 'user:', user);
     if (!loading && !isAuthenticated) {
-      console.log('User not authenticated, redirecting to login');
+      console.log('UserPortal: Not authenticated, redirecting to login');
       navigate('/login');
     }
-  }, [isAuthenticated, navigate, loading, user]);
+  }, [isAuthenticated, navigate, loading]);
+
+  const handleLogout = () => {
+    console.log('UserPortal: Logging out user');
+    logout();
+    navigate('/login');
+  };
+
+  const handleBackToLogin = () => {
+    navigate('/login');
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-32"></div>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="animate-pulse text-center">
+              <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-32"></div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -44,24 +59,21 @@ const UserPortal = () => {
               Access Denied
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
               You need to be logged in to access the user portal.
             </p>
-            <Button onClick={() => navigate('/login')} className="w-full">
-              Go to Login
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleBackToLogin} className="flex-1">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Login
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     );
   }
-
-  const handleLogout = () => {
-    console.log('Logging out user');
-    logout();
-    navigate('/login');
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
