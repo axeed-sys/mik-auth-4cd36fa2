@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import Navigation from "@/components/Navigation";
 import Dashboard from "@/components/Dashboard";
 import UserManagement from "@/components/UserManagement";
@@ -45,17 +46,24 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900">
-      <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
-      
-      <div className="flex-1 lg:ml-0 ml-0">
-        <div className="h-full overflow-auto">
-          <div className="p-6 lg:p-8 pt-16 lg:pt-8">
-            {renderCurrentPage()}
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gray-900">
+        <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
+        
+        <SidebarInset className="flex-1">
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4 border-b border-gray-700 bg-gray-800">
+            <SidebarTrigger className="text-white hover:bg-gray-700" />
+            <div className="ml-auto"></div>
+          </header>
+          
+          <div className="flex-1 overflow-auto">
+            <div className="p-6 lg:p-8">
+              {renderCurrentPage()}
+            </div>
           </div>
-        </div>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
