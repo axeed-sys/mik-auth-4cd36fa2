@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,7 +45,7 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-900">
       <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
       
       <div className="flex-1 lg:ml-0 ml-0">

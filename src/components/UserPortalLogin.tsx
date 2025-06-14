@@ -63,20 +63,20 @@ const UserPortalLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
+      <Card className="w-full max-w-md shadow-lg bg-gray-800 border-gray-700">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold text-gray-800">
+          <CardTitle className="text-2xl font-bold text-white">
             Customer Portal
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-gray-300">
             Sign in to access your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium">
+              <Label htmlFor="username" className="text-sm font-medium text-gray-200">
                 Username
               </Label>
               <div className="relative">
@@ -87,7 +87,7 @@ const UserPortalLogin = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
-                  className="pl-10"
+                  className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
                   required
                   disabled={isLoading}
                 />
@@ -95,7 +95,7 @@ const UserPortalLogin = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
+              <Label htmlFor="password" className="text-sm font-medium text-gray-200">
                 Password
               </Label>
               <div className="relative">
@@ -106,7 +106,7 @@ const UserPortalLogin = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="pl-10"
+                  className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
                   required
                   disabled={isLoading}
                 />
@@ -115,7 +115,7 @@ const UserPortalLogin = () => {
 
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
               disabled={isLoading}
             >
               {isLoading ? (
@@ -130,7 +130,7 @@ const UserPortalLogin = () => {
           </form>
 
           <div className="mt-6 text-center">
-            <div className="flex items-center gap-2 justify-center text-sm text-gray-500">
+            <div className="flex items-center gap-2 justify-center text-sm text-gray-400">
               <AlertCircle className="h-4 w-4" />
               <span>Need help? Contact your administrator</span>
             </div>

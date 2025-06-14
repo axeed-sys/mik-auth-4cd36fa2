@@ -50,11 +50,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
+      <Card className="w-full max-w-md bg-gray-800 border-gray-700">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">MikroTik Auth Link</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl font-bold text-center text-white">MikroTik Auth Link</CardTitle>
+          <CardDescription className="text-center text-gray-300">
             {requiresTwoFactor ? "Enter your authenticator code" : "Enter your credentials to access the system"}
           </CardDescription>
         </CardHeader>
@@ -63,31 +63,33 @@ const Login = () => {
             {!requiresTwoFactor ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username" className="text-gray-200">Username</Label>
                   <Input
                     id="username"
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter username"
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-gray-200">Password</Label>
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter password"
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
                     required
                   />
                 </div>
               </>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="totpCode">Authenticator Code</Label>
+                <Label htmlFor="totpCode" className="text-gray-200">Authenticator Code</Label>
                 <Input
                   id="totpCode"
                   type="text"
@@ -95,9 +97,10 @@ const Login = () => {
                   onChange={(e) => setTotpCode(e.target.value)}
                   placeholder="Enter 6-digit code"
                   maxLength={6}
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
                   required
                 />
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-400">
                   Enter the 6-digit code from your authenticator app
                 </p>
               </div>
@@ -107,7 +110,7 @@ const Login = () => {
               <Button 
                 type="button" 
                 variant="outline" 
-                className="w-full" 
+                className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white" 
                 onClick={() => {
                   setRequiresTwoFactor(false);
                   setTotpCode('');
@@ -119,7 +122,7 @@ const Login = () => {
             
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : (requiresTwoFactor ? "Verify Code" : "Sign In")}
