@@ -46,14 +46,14 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
   ];
 
   return (
-    <Sidebar className="border-r border-gray-700">
-      <SidebarHeader className="p-6">
+    <Sidebar className="bg-gray-800 border-r border-gray-600">
+      <SidebarHeader className="p-6 bg-gray-800">
         <h1 className="text-xl font-bold text-white">MikroTik Auth Link</h1>
       </SidebarHeader>
       
-      <SidebarContent>
+      <SidebarContent className="bg-gray-800">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400 text-sm font-medium mb-2">
+          <SidebarGroupLabel className="text-gray-300 text-sm font-medium mb-2">
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -66,7 +66,7 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
                     className={`w-full justify-start text-left ${
                       currentPage === item.id 
                         ? "bg-blue-600 text-white hover:bg-blue-700" 
-                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                        : "text-gray-200 hover:bg-gray-700 hover:text-white"
                     }`}
                   >
                     <item.icon className="w-4 h-4" />
@@ -79,10 +79,10 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-6">
+      <SidebarFooter className="p-6 bg-gray-800">
         <Button
           variant="outline"
-          className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+          className="w-full border-gray-500 text-gray-200 hover:bg-gray-700 hover:text-white hover:border-gray-400"
           onClick={handleLogout}
         >
           <LogOut className="w-4 h-4 mr-2" />
