@@ -10,6 +10,7 @@ import ConnectionMonitor from "@/components/ConnectionMonitor";
 import ConfigSection from "@/components/ConfigSection";
 import PaymentTracking from "@/components/PaymentTracking";
 import Settings from "@/components/Settings";
+import TicketManagement from "@/components/TicketManagement";
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -38,6 +39,8 @@ const Index = () => {
         return <ConfigSection />;
       case "finance":
         return <PaymentTracking />;
+      case "tickets":
+        return <TicketManagement />;
       case "settings":
         return <Settings />;
       default:

@@ -21,7 +21,8 @@ import {
   Settings as SettingsIcon, 
   DollarSign, 
   Cog,
-  LogOut
+  LogOut,
+  MessageSquare
 } from "lucide-react";
 
 interface NavigationProps {
@@ -42,6 +43,7 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
     { id: "monitor", label: "Connection Monitor", icon: Monitor },
     { id: "config", label: "Config", icon: Cog },
     { id: "finance", label: "Finance", icon: DollarSign },
+    { id: "tickets", label: "Support Tickets", icon: MessageSquare },
     { id: "settings", label: "Settings", icon: SettingsIcon },
   ];
 

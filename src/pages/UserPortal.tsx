@@ -5,11 +5,12 @@ import { useUserPortal } from '@/contexts/UserPortalContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, CreditCard, History, LogOut, Receipt, AlertTriangle, ArrowLeft, Loader2 } from 'lucide-react';
+import { User, CreditCard, History, LogOut, Receipt, AlertTriangle, ArrowLeft, Loader2, MessageSquare } from 'lucide-react';
 import PaymentHistory from '@/components/PaymentHistory';
 import PaymentPlans from '@/components/PaymentPlans';
 import SubscriptionStatus from '@/components/SubscriptionStatus';
 import PaymentReceipts from '@/components/PaymentReceipts';
+import SupportTickets from '@/components/SupportTickets';
 import UserPortalLogin from '@/components/UserPortalLogin';
 
 const UserPortal = () => {
@@ -137,7 +138,7 @@ const UserPortal = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-3">
             <Tabs defaultValue="plans" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 bg-gray-800 border-gray-700">
+              <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-gray-700">
                 <TabsTrigger value="plans" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                   <CreditCard className="h-4 w-4" />
                   Payment Plans
@@ -149,6 +150,10 @@ const UserPortal = () => {
                 <TabsTrigger value="receipts" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                   <Receipt className="h-4 w-4" />
                   Receipts
+                </TabsTrigger>
+                <TabsTrigger value="support" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
+                  <MessageSquare className="h-4 w-4" />
+                  Support
                 </TabsTrigger>
               </TabsList>
 
@@ -174,6 +179,10 @@ const UserPortal = () => {
                   <p className="text-gray-400 mb-4">Download and view your payment receipts</p>
                 </div>
                 <PaymentReceipts />
+              </TabsContent>
+
+              <TabsContent value="support" className="space-y-6">
+                <SupportTickets />
               </TabsContent>
             </Tabs>
           </div>
